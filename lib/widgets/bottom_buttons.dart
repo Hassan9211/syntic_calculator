@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syntic_calculator/app_colors.dart';
 import 'package:syntic_calculator/routes/route_paths.dart';
+import 'package:syntic_calculator/services/app_interaction_feedback.dart';
 
 /// Har main screen ko shared background aur bottom navigation ke sath wrap karta hai.
 class AppTabScaffold extends StatelessWidget {
@@ -22,7 +25,7 @@ class AppTabScaffold extends StatelessWidget {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -104,7 +107,10 @@ class BottomButtons extends StatelessWidget {
               isActive: currentRoute == item.route,
               onTap: currentRoute == item.route
                   ? null
-                  : () => context.go(item.route),
+                  : () {
+                      unawaited(AppInteractionFeedback.playTap());
+                      context.go(item.route);
+                    },
             ),
         ],
       ),

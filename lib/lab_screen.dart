@@ -9,6 +9,7 @@ import 'package:syntic_calculator/routes/route_paths.dart';
 import 'package:syntic_calculator/storage/calculation_history_storage.dart';
 import 'package:syntic_calculator/utils/calculator_display_formatter.dart';
 import 'package:syntic_calculator/widgets/bottom_buttons.dart';
+import 'package:syntic_calculator/widgets/header.dart';
 import 'package:syntic_calculator/widgets/lab_button.dart';
 
 /// Lab tab ke liye working scientific calculator screen dikhata hai.
@@ -515,7 +516,19 @@ class _LabScreenState extends State<LabScreen> {
           ),
           Column(
             children: [
-              const _LabHeader(),
+              AppHeader(
+                title: 'SYNTIC',
+                useTopInset: true,
+                topPadding: 14,
+                horizontalPadding: 14,
+                bottomPadding: 14,
+                backgroundColor: const Color(
+                  0xFF14131C,
+                ).withValues(alpha: 0.76),
+                titleColor: AppColors.textPrimary,
+                fontSize: 18,
+                letterSpacing: 2.6,
+              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
@@ -538,62 +551,6 @@ class _LabScreenState extends State<LabScreen> {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Top header app branding aur current mode badge dikhata hai.
-class _LabHeader extends StatelessWidget {
-  const _LabHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(14, topInset + 14, 14, 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF14131C).withValues(alpha: 0.76),
-      ),
-      child: Row(
-        children: [
-          const Text(
-            'SYNTIC',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2.6,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary.withValues(alpha: 0.30),
-                  AppColors.primaryDark.withValues(alpha: 0.16),
-                ],
-              ),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.18),
-              ),
-            ),
-            child: Text(
-              'SCIENTIFIC MODE',
-              style: TextStyle(
-                color: AppColors.primary.withValues(alpha: 0.90),
-                fontSize: 9.5,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.9,
-              ),
-            ),
           ),
         ],
       ),

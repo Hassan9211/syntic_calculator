@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:syntic_calculator/services/app_interaction_feedback.dart';
 
 /// Shared tappable shell jo basic aur scientific dono calculator keys ka common structure deta hai.
 class CalculatorKeySurface extends StatefulWidget {
@@ -42,7 +45,7 @@ class _CalculatorKeySurfaceState extends State<CalculatorKeySurface> {
   }
 
   void _handleTap() {
-    Feedback.forTap(context);
+    unawaited(AppInteractionFeedback.playTap());
     widget.onPressed();
   }
 

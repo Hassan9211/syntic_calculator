@@ -37,37 +37,38 @@ class LabButton extends StatelessWidget {
     final isEqual = data.tone == CalculatorKeyTone.equal;
     final isDelete = data.tone == CalculatorKeyTone.delete;
 
-    // Equal aur delete keys ko baqi buttons se zyada visual emphasis milti hai.
-    final borderColor = isEqual
-        ? AppColors.primary.withValues(alpha: 0.35)
-        : isDelete
-            ? AppColors.accentPurple.withValues(alpha: 0.24)
-            : AppColors.borderSubtle;
+    // Surface ko same structure me rakha gaya hai, but special colors wapas restore kiye gaye hain.
+    final borderColor = AppColors.borderSubtle;
 
     final backgroundGradient = isEqual
-        ? const LinearGradient(
+        ? LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [AppColors.primary, AppColors.primaryDark],
           )
         : isDelete
-            ? const LinearGradient(
+            ? LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFD15FFF), Color(0xFFA73EF6)],
+                colors: [
+                  AppColors.deleteButtonStart,
+                  AppColors.deleteButtonEnd,
+                ],
               )
             : LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF2B2833).withValues(alpha: 0.98),
-                  const Color(0xFF1C1A24).withValues(alpha: 0.98),
+                  AppColors.buttonDark.withValues(alpha: 0.98),
+                  AppColors.buttonSecondary.withValues(alpha: 0.98),
                 ],
               );
 
     final textColor = isEqual
-        ? const Color(0xFF042A31)
-        : AppColors.textPrimary.withValues(alpha: isDelete ? 0.95 : 0.82);
+        ? AppColors.equalForeground
+        : isDelete
+            ? AppColors.textPrimary.withValues(alpha: 0.95)
+            : AppColors.textPrimary.withValues(alpha: 0.82);
 
     final child = data.icon == null
         ? Text(
@@ -93,23 +94,7 @@ class LabButton extends StatelessWidget {
       borderRadius: 24,
       gradient: backgroundGradient,
       borderColor: borderColor,
-      boxShadow: isEqual
-          ? [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.32),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ]
-          : isDelete
-              ? [
-                  BoxShadow(
-                    color: AppColors.accentPurple.withValues(alpha: 0.24),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                ]
-              : null,
+      boxShadow: null,
       child: child,
     );
   }

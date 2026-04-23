@@ -8,6 +8,7 @@ import 'package:syntic_calculator/storage/calculation_history_storage.dart';
 import 'package:syntic_calculator/utils/calculator_display_formatter.dart';
 import 'package:syntic_calculator/widgets/bottom_buttons.dart';
 import 'package:syntic_calculator/widgets/calculator_button.dart';
+import 'package:syntic_calculator/widgets/header.dart';
 
 /// Yeh main calculator screen hai.
 class HomeScreen extends StatefulWidget {
@@ -272,20 +273,15 @@ class _HomeScreenState extends State<HomeScreen> {
       currentRoute: AppRoutes.calculator,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'SYNTIC',
-                style: TextStyle(
-                  color: AppColors.textPrimary.withValues(alpha: 0.95),
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 3,
-                ),
-              ),
-            ),
+          AppHeader(
+            title: 'SYNTIC',
+            useTopInset: false,
+            topPadding: 12,
+            horizontalPadding: 20,
+            bottomPadding: 10,
+            titleColor: AppColors.textPrimary.withValues(alpha: 0.95),
+            fontSize: 24,
+            letterSpacing: 3,
           ),
           Container(
             // Yeh display area current expression aur latest answer dono dikhata hai.
@@ -330,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     displayValue,
                     key: const Key('calculator_display'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.primary,
                       fontSize: 64,
                       fontWeight: FontWeight.w700,

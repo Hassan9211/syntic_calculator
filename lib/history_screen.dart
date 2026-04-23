@@ -3,6 +3,7 @@ import 'package:syntic_calculator/app_colors.dart';
 import 'package:syntic_calculator/routes/route_paths.dart';
 import 'package:syntic_calculator/storage/calculation_history_storage.dart';
 import 'package:syntic_calculator/widgets/bottom_buttons.dart';
+import 'package:syntic_calculator/widgets/header.dart';
 
 /// Yeh save hui calculations ki history screen hai.
 class HistoryScreen extends StatefulWidget {
@@ -216,7 +217,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           Column(
             children: [
-              const _HistoryHeader(),
+              AppHeader(
+                title: 'SYNTIC',
+                useTopInset: true,
+                topPadding: 14,
+                horizontalPadding: 20,
+                bottomPadding: 14,
+                backgroundColor: const Color(
+                  0xFF14131C,
+                ).withValues(alpha: 0.76),
+                titleColor: AppColors.textPrimary.withValues(alpha: 0.95),
+                fontSize: 24,
+                letterSpacing: 3,
+              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
@@ -260,7 +273,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         child: Builder(
                           builder: (context) {
                             if (_isLoading) {
-                              return const Center(
+                              return Center(
                                 child: CircularProgressIndicator(
                                   color: AppColors.primary,
                                 ),
@@ -332,33 +345,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-/// History screen ke top par full-width brand header dikhata hai.
-class _HistoryHeader extends StatelessWidget {
-  const _HistoryHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, topInset + 14, 20, 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF14131C).withValues(alpha: 0.76),
-      ),
-      child: Text(
-        'SYNTIC',
-        style: TextStyle(
-          color: AppColors.textPrimary.withValues(alpha: 0.95),
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 3,
-        ),
-      ),
-    );
-  }
-}
-
 /// Card ko swipe delete mode ke hisab se dismissible banata hai.
 class _HistoryEntryTile extends StatelessWidget {
   const _HistoryEntryTile({
@@ -414,7 +400,7 @@ class _HistoryCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: AppColors.borderSubtle),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [AppColors.buttonDark, AppColors.buttonSecondary],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:syntic_calculator/app_colors.dart';
 import 'package:syntic_calculator/widgets/bottom_buttons.dart';
+import 'package:syntic_calculator/widgets/header.dart';
 
 class TabPlaceholderScreen extends StatelessWidget {
   const TabPlaceholderScreen({
@@ -25,17 +26,15 @@ class TabPlaceholderScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
         child: Column(
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'SYNTIC',
-                style: TextStyle(
-                  color: AppColors.textPrimary.withValues(alpha: 0.95),
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 3,
-                ),
-              ),
+            AppHeader(
+              title: 'SYNTIC',
+              useTopInset: false,
+              topPadding: 0,
+              horizontalPadding: 0,
+              bottomPadding: 0,
+              titleColor: AppColors.textPrimary.withValues(alpha: 0.95),
+              fontSize: 24,
+              letterSpacing: 3,
             ),
             const Spacer(),
             Container(

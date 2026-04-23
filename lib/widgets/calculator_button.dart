@@ -43,7 +43,7 @@ class CalculatorButton extends StatelessWidget {
       onPressed: onPressed,
       backgroundColor: isOperator ? null : backgroundColor,
       gradient: isOperator
-          ? const LinearGradient(
+          ? LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: AppColors.operatorGradient,

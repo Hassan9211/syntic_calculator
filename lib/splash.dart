@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syntic_calculator/app_colors.dart';
 import 'package:syntic_calculator/routes/route_paths.dart';
+import 'package:syntic_calculator/widgets/header.dart';
 
 /// Shuruati splash screen jo chhoti loading animation ke baad calculator kholti hai.
 class SplashScreen extends StatefulWidget {
@@ -49,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -81,24 +82,26 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.calculate_rounded,
                       size: 50,
                       color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'SYNTIC',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 6,
-                    ),
+                  const AppHeader(
+                    title: 'SYNTIC',
+                    useTopInset: false,
+                    topPadding: 0,
+                    horizontalPadding: 0,
+                    bottomPadding: 0,
+                    alignment: Alignment.center,
+                    titleColor: AppColors.textPrimary,
+                    fontSize: 30,
+                    letterSpacing: 6,
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     'CALCULATOR',
                     style: TextStyle(
                       color: AppColors.primary,
@@ -126,7 +129,7 @@ class _SplashScreenState extends State<SplashScreen>
                           minHeight: 4,
                           value: _progressController.value,
                           backgroundColor: AppColors.progressTrack,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
+                          valueColor: AlwaysStoppedAnimation<Color>(
                             AppColors.primary,
                           ),
                         );
