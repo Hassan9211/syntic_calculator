@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen>
     // Ek hi animation timeline loading bar aur screen transition dono ko chalati hai.
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(milliseconds: 1500),
     );
     _startSplash();
   }

@@ -22,11 +22,7 @@ class LabButtonData {
 
 /// Yeh reusable widget Lab screen ki har scientific key ke liye use hota hai.
 class LabButton extends StatelessWidget {
-  const LabButton({
-    super.key,
-    required this.data,
-    required this.onPressed,
-  });
+  const LabButton({super.key, required this.data, required this.onPressed});
 
   final LabButtonData data;
   final VoidCallback onPressed;
@@ -47,28 +43,25 @@ class LabButton extends StatelessWidget {
             colors: [AppColors.primary, AppColors.primaryDark],
           )
         : isDelete
-            ? LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.deleteButtonStart,
-                  AppColors.deleteButtonEnd,
-                ],
-              )
-            : LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.buttonDark.withValues(alpha: 0.98),
-                  AppColors.buttonSecondary.withValues(alpha: 0.98),
-                ],
-              );
+        ? LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.deleteButtonStart, AppColors.deleteButtonEnd],
+          )
+        : LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.buttonDark.withValues(alpha: 0.98),
+              AppColors.buttonSecondary.withValues(alpha: 0.98),
+            ],
+          );
 
     final textColor = isEqual
         ? AppColors.equalForeground
         : isDelete
-            ? AppColors.textPrimary.withValues(alpha: 0.95)
-            : AppColors.textPrimary.withValues(alpha: 0.82);
+        ? AppColors.textPrimary.withValues(alpha: 0.95)
+        : AppColors.textPrimary.withValues(alpha: 0.82);
 
     final child = data.icon == null
         ? Text(
@@ -82,14 +75,10 @@ class LabButton extends StatelessWidget {
               letterSpacing: data.tone == CalculatorKeyTone.function ? 0.3 : 0,
             ),
           )
-        : Icon(
-            data.icon,
-            color: textColor,
-            size: 18,
-          );
+        : Icon(data.icon, color: textColor, size: 18);
 
     return CalculatorKeySurface(
-      buttonKey: Key('lab_key_${data.id}'),
+      key: Key('lab_key_${data.id}'),
       onPressed: onPressed,
       borderRadius: 24,
       gradient: backgroundGradient,

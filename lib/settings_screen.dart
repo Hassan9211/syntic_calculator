@@ -53,6 +53,10 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _confirmWipeLocalDatabase(BuildContext context) async {
+    await _wipeLocalDatabase(context);
+  }
+
   Future<void> _wipeLocalDatabase(BuildContext context) async {
     await CalculationHistoryStorage.clearLocal();
 
@@ -63,17 +67,15 @@ class SettingsScreen extends StatelessWidget {
     final cloudHistoryEnabled =
         AppSettingsController.instance.cloudHistoryEnabled;
 
+    final message = cloudHistoryEnabled
+        ? 'Local calculation history wiped. Cloud archive can restore it on relaunch.'
+        : 'Local calculation history wiped.';
+
+    debugPrint('DEBUG: showing snackbar message: $message');
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(
-            cloudHistoryEnabled
-                ? 'Local calculation history wiped. Cloud archive can restore it on relaunch.'
-                : 'Local calculation history wiped.',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
       );
   }
 
@@ -108,8 +110,9 @@ class SettingsScreen extends StatelessWidget {
                     topPadding: 14,
                     horizontalPadding: 14,
                     bottomPadding: 14,
-                    backgroundColor:
-                        AppColors.headerBackground.withValues(alpha: 0.76),
+                    backgroundColor: AppColors.headerBackground.withValues(
+                      alpha: 0.76,
+                    ),
                     titleColor: AppColors.textPrimary,
                     fontSize: 18,
                     letterSpacing: 2.6,
@@ -162,11 +165,8 @@ class SettingsScreen extends StatelessWidget {
                               icon: option.icon,
                               accentColor: option.accentColor,
                               value: _optionValue(settings, option),
-                              onChanged: (value) => _setResponseOption(
-                                context,
-                                option.id,
-                                value,
-                              ),
+                              onChanged: (value) =>
+                                  _setResponseOption(context, option.id, value),
                             ),
                             if (option != _responseOptions.last)
                               const SizedBox(height: 12),
@@ -176,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
                             buttonKey: const Key('settings_wipe_button'),
                             label: 'Wipe Local Database',
                             icon: Icons.delete_outline_rounded,
-                            onPressed: () => _wipeLocalDatabase(context),
+                            onPressed: () => _confirmWipeLocalDatabase(context),
                           ),
                           const SizedBox(height: 20),
                           Center(

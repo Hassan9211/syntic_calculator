@@ -9,6 +9,7 @@ import 'package:syntic_calculator/utils/calculator_display_formatter.dart';
 import 'package:syntic_calculator/widgets/bottom_buttons.dart';
 import 'package:syntic_calculator/widgets/calculator_button.dart';
 import 'package:syntic_calculator/widgets/header.dart';
+import 'package:syntic_calculator/widgets/inline_expression_editor.dart';
 
 /// Yeh main calculator screen hai.
 class HomeScreen extends StatefulWidget {
@@ -20,6 +21,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const int _maxInputLength = 12;
+  final InlineExpressionEditorController _expressionEditor =
+      InlineExpressionEditorController();
 
   // Bari display par jo value nazar aati hai.
   String _currentInput = '0';
@@ -34,11 +37,25 @@ class _HomeScreenState extends State<HomeScreen> {
   // Aakhri completed answer jo hint ke tor par dikhaya jata hai.
   String _lastResult = '0';
 
+  @override
+  void dispose() {
+    _expressionEditor.dispose();
+    super.dispose();
+  }
+
   // Button handling ko ek jagah rakha gaya hai taake button widget simple rahe.
   void _onButtonPressed(String value) {
+    if (_expressionEditor.isEditing) {
+      _handleInlineEditButton(value);
+      return;
+    }
+
     switch (value) {
       case 'AC':
         _resetCalculator();
+        return;
+      case 'DEL':
+        _deleteLastCharacter();
         return;
       case '+/-':
         _toggleSign();
@@ -60,6 +77,26 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       default:
         _appendDigit(value);
+        return;
+    }
+  }
+
+  void _handleInlineEditButton(String value) {
+    switch (value) {
+      case 'AC':
+        _expressionEditor.clear();
+        return;
+      case 'DEL':
+        _expressionEditor.deleteBackward();
+        return;
+      case '=':
+        _finishInlineEditing(calculateAfterApply: true);
+        return;
+      case '.':
+        _expressionEditor.insertDecimal(segmentPattern: RegExp(r'[^+\-x/]*$'));
+        return;
+      default:
+        _expressionEditor.insertText(value);
         return;
     }
   }
@@ -139,25 +176,63 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Current expression ya input ka aakhri hissa erase karta hai.
+  void _deleteLastCharacter() {
+    setState(() {
+      if (_shouldResetInput && _operator == null) {
+        _currentInput = '0';
+        _expression = '0';
+        _shouldResetInput = false;
+        return;
+      }
+
+      if (_shouldResetInput && _operator != null) {
+        _operator = null;
+        _shouldResetInput = false;
+        _storedValue = null;
+        _expression = '0';
+        return;
+      }
+
+      if (_currentInput.length <= 1 ||
+          (_currentInput.startsWith('-') && _currentInput.length == 2)) {
+        _currentInput = '0';
+      } else {
+        _currentInput = _currentInput.substring(0, _currentInput.length - 1);
+      }
+
+      _syncExpression();
+    });
+  }
+
   /// Operator select karta hai aur zarurat par chained calculation bhi chala leta hai.
   void _setOperator(String nextOperator) {
     setState(() {
       final currentValue = _parseInput(_currentInput);
 
-      if (_storedValue != null && _operator != null && !_shouldResetInput) {
-        final result = _performOperation(
-          _storedValue!,
-          currentValue,
-          _operator!,
-        );
-        if (result == null) {
+      if (_storedValue != null && _operator != null) {
+        if (!_shouldResetInput) {
+          final result = _performOperation(
+            _storedValue!,
+            currentValue,
+            _operator!,
+          );
+          if (result == null) {
+            return;
+          }
+          _storedValue = result;
+          _currentInput = _normalizeNumber(result);
+          _lastResult = _formatDisplay(_currentInput);
+        } else {
+          _operator = nextOperator;
+          _expression = '${_formatNumber(_storedValue!)} $_operator';
           return;
         }
-        _storedValue = result;
-        _currentInput = _normalizeNumber(result);
-        _lastResult = _formatDisplay(_currentInput);
       } else {
         _storedValue = currentValue;
+        if (_shouldResetInput) {
+          _currentInput = '0';
+        }
       }
 
       _operator = nextOperator;
@@ -243,8 +318,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ? ''
           : ' ${_formatDisplay(_currentInput)}';
       _expression = '${_formatNumber(_storedValue!)} $_operator$rightSide';
-    } else if (!_shouldResetInput) {
-      _expression = '0';
+      return;
+    }
+
+    if (!_shouldResetInput) {
+      _expression = _formatDisplay(_currentInput);
     }
   }
 
@@ -264,6 +342,100 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Number string ko commas aur decimals ke sath asan padhne layak banata hai.
   String _formatDisplay(String value) =>
       CalculatorDisplayFormatter.formatDisplay(value);
+
+  void _finishInlineEditing({bool calculateAfterApply = false}) {
+    if (!_expressionEditor.isEditing) {
+      return;
+    }
+
+    final editedValue = _expressionEditor.finishEditing();
+    _applyEditedExpression(editedValue);
+
+    if (calculateAfterApply &&
+        _storedValue != null &&
+        _operator != null &&
+        !_shouldResetInput) {
+      _calculate();
+    }
+  }
+
+  /// User-edited expression ko calculator state me convert karta hai.
+  void _applyEditedExpression(String rawExpression) {
+    final normalized = rawExpression
+        .replaceAll(',', '')
+        .replaceAll('*', 'x')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ');
+
+    if (normalized.isEmpty) {
+      _resetCalculator();
+      return;
+    }
+
+    final pendingMatch = RegExp(
+      r'^(-?\d+(?:\.\d+)?)\s*([+\-x/])$',
+    ).firstMatch(normalized);
+    if (pendingMatch != null) {
+      final leftValue = double.tryParse(pendingMatch.group(1)!);
+      if (leftValue == null) {
+        _showInvalidEditError();
+        return;
+      }
+
+      setState(() {
+        _storedValue = leftValue;
+        _operator = pendingMatch.group(2);
+        _currentInput = '0';
+        _shouldResetInput = true;
+        _expression = '${_formatNumber(leftValue)} $_operator';
+      });
+      return;
+    }
+
+    final expressionMatch = RegExp(
+      r'^(-?\d+(?:\.\d+)?)\s*([+\-x/])\s*(-?\d+(?:\.\d+)?)$',
+    ).firstMatch(normalized);
+    if (expressionMatch != null) {
+      final leftValue = double.tryParse(expressionMatch.group(1)!);
+      final rightValue = double.tryParse(expressionMatch.group(3)!);
+      final operator = expressionMatch.group(2)!;
+      if (leftValue == null || rightValue == null) {
+        _showInvalidEditError();
+        return;
+      }
+
+      setState(() {
+        _storedValue = leftValue;
+        _operator = operator;
+        _currentInput = _normalizeNumber(rightValue);
+        _shouldResetInput = false;
+        _syncExpression();
+      });
+      return;
+    }
+
+    final standaloneValue = double.tryParse(normalized);
+    if (standaloneValue != null) {
+      setState(() {
+        _currentInput = _normalizeNumber(standaloneValue);
+        _storedValue = null;
+        _operator = null;
+        _shouldResetInput = false;
+        _expression = _formatDisplay(_currentInput);
+      });
+      return;
+    }
+
+    _showInvalidEditError();
+  }
+
+  void _showInvalidEditError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please enter a valid number or simple expression.'),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -309,20 +481,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  _expression,
-                  key: const Key('calculator_expression'),
+                EditableExpressionLine(
+                  key: const Key('calculator_expression_editor'),
+                  controller: _expressionEditor,
+                  text: _expression,
+                  textKey: const Key('calculator_expression'),
                   style: TextStyle(
                     color: AppColors.textSecondary.withValues(alpha: 0.85),
                     fontSize: 28,
                     fontWeight: FontWeight.w500,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 16),
                 FittedBox(
                   fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
                   child: Text(
                     displayValue,
                     key: const Key('calculator_display'),
@@ -421,13 +594,13 @@ const List<List<CalculatorButtonData>> _buttonRows = [
       tone: CalculatorKeyTone.secondary,
     ),
     CalculatorButtonData(
-      id: 'sign',
-      label: '+/-',
+      id: 'delete',
+      label: 'DEL',
       tone: CalculatorKeyTone.secondary,
     ),
     CalculatorButtonData(
-      id: 'percent',
-      label: '%',
+      id: 'sign',
+      label: '+/-',
       tone: CalculatorKeyTone.secondary,
     ),
     CalculatorButtonData(

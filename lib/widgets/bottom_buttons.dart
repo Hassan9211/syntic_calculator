@@ -42,10 +42,7 @@ class AppTabScaffold extends StatelessWidget {
             // Bottom bar ko safe area milti rahe, lekin top content full-bleed bhi ho sakta hai.
             SafeArea(
               top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: BottomButtons(currentRoute: currentRoute),
-              ),
+              child: BottomButtons(currentRoute: currentRoute),
             ),
           ],
         ),

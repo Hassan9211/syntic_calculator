@@ -89,7 +89,6 @@ class _CalculatorKeySurfaceState extends State<CalculatorKeySurface> {
             boxShadow: _resolvedShadows(),
           ),
           child: InkWell(
-            key: widget.buttonKey,
             onTap: _handleTap,
             onTapDown: (_) => _setPressed(true),
             onTapUp: (_) => _setPressed(false),

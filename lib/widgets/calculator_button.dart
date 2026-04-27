@@ -39,7 +39,7 @@ class CalculatorButton extends StatelessWidget {
     final textColor = isOperator ? AppColors.card : AppColors.textPrimary;
 
     return CalculatorKeySurface(
-      buttonKey: Key('calculator_key_${data.id}'),
+      key: Key('calculator_key_${data.id}'),
       onPressed: onPressed,
       backgroundColor: isOperator ? null : backgroundColor,
       gradient: isOperator
@@ -49,15 +49,7 @@ class CalculatorButton extends StatelessWidget {
               colors: AppColors.operatorGradient,
             )
           : null,
-      boxShadow: isOperator
-          ? [
-              BoxShadow(
-                color: AppColors.accentPurple.withValues(alpha: 0.30),
-                blurRadius: 18,
-                offset: const Offset(0, 10),
-              ),
-            ]
-          : null,
+      boxShadow: null,
       child: Text(
         data.label,
         style: TextStyle(

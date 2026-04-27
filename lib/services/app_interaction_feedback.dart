@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:syntic_calculator/settings/app_settings_controller.dart';
@@ -13,7 +12,10 @@ class AppInteractionFeedback {
 
   static final AudioPlayer _player = AudioPlayer(playerId: 'tap-feedback');
   static Future<void>? _playerSetup;
-  static final Uint8List _tapToneBytes = _buildTapToneBytes();
+  static final AssetSource _tapToneSource = AssetSource(
+    'audio/tap.wav',
+    mimeType: 'audio/wav',
+  );
 
   static Future<void> playTap() async {
     final settings = AppSettingsController.instance;
@@ -49,12 +51,21 @@ class AppInteractionFeedback {
   }
 
   static Future<void> _playTone() async {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      try {
+        await SystemSound.play(SystemSoundType.click);
+        return;
+      } catch (_) {
+        // Agar native click unavailable ho to asset-based fallback try hota hai.
+      }
+    }
+
     try {
       await _ensurePlayerReady();
       await _player.stop();
       await _player.play(
-        BytesSource(_tapToneBytes, mimeType: 'audio/wav'),
-        volume: 0.88,
+        _tapToneSource,
+        volume: 1.0,
       );
       return;
     } catch (_) {
@@ -62,54 +73,10 @@ class AppInteractionFeedback {
     }
 
     try {
-      await SystemSound.play(SystemSoundType.click);
+      await SystemSound.play(_fallbackSystemSoundType);
     } catch (_) {
       // Unsupported platform par silent fail acceptable hai.
     }
-  }
-
-  static Uint8List _buildTapToneBytes() {
-    const sampleRate = 16000;
-    const durationMs = 42;
-    const frequency = 920.0;
-
-    final sampleCount = (sampleRate * durationMs / 1000).round();
-    final dataLength = sampleCount * 2;
-    final totalLength = 44 + dataLength;
-    final bytes = ByteData(totalLength);
-
-    void writeAscii(int offset, String value) {
-      for (var index = 0; index < value.length; index++) {
-        bytes.setUint8(offset + index, value.codeUnitAt(index));
-      }
-    }
-
-    writeAscii(0, 'RIFF');
-    bytes.setUint32(4, 36 + dataLength, Endian.little);
-    writeAscii(8, 'WAVE');
-    writeAscii(12, 'fmt ');
-    bytes.setUint32(16, 16, Endian.little);
-    bytes.setUint16(20, 1, Endian.little);
-    bytes.setUint16(22, 1, Endian.little);
-    bytes.setUint32(24, sampleRate, Endian.little);
-    bytes.setUint32(28, sampleRate * 2, Endian.little);
-    bytes.setUint16(32, 2, Endian.little);
-    bytes.setUint16(34, 16, Endian.little);
-    writeAscii(36, 'data');
-    bytes.setUint32(40, dataLength, Endian.little);
-
-    for (var index = 0; index < sampleCount; index++) {
-      final progress = index / sampleCount;
-      final envelope = (1 - progress) * 0.9;
-      final sample =
-          (math.sin(2 * math.pi * frequency * index / sampleRate) *
-                  envelope *
-                  32767)
-              .round();
-      bytes.setInt16(44 + (index * 2), sample, Endian.little);
-    }
-
-    return bytes.buffer.asUint8List();
   }
 
   static Future<void> _ensurePlayerReady() {
@@ -127,5 +94,23 @@ class AppInteractionFeedback {
       );
       await _player.setReleaseMode(ReleaseMode.stop);
     }();
+  }
+
+  static SystemSoundType get _fallbackSystemSoundType {
+    if (kIsWeb) {
+      return SystemSoundType.click;
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        return SystemSoundType.click;
+      case TargetPlatform.windows:
+      case TargetPlatform.macOS:
+      case TargetPlatform.linux:
+        return SystemSoundType.alert;
+      case TargetPlatform.fuchsia:
+        return SystemSoundType.click;
+    }
   }
 }

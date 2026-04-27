@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:syntic_calculator/app_colors.dart';
 import 'package:syntic_calculator/routes/route_paths.dart';
+import 'package:syntic_calculator/services/app_interaction_feedback.dart';
 import 'package:syntic_calculator/storage/calculation_history_storage.dart';
 import 'package:syntic_calculator/widgets/bottom_buttons.dart';
 import 'package:syntic_calculator/widgets/header.dart';
@@ -58,6 +61,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _isSwipeDeleteEnabled = false;
       }
     });
+  }
+
+  /// User jab clear button dabaye to pehle confirmation dikhata hai.
+  Future<void> _confirmClearHistory() async {
+    final shouldClear = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Clear all history?'),
+          content: const Text('Do you want to delete all saved history?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldClear == true) {
+      await _clearHistory();
+    }
   }
 
   /// User jab clear button dabaye to puri history remove kar deta hai.
@@ -193,10 +223,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF17161F),
-                    const Color(0xFF13131A),
-                  ],
+                  colors: [const Color(0xFF17161F), const Color(0xFF13131A)],
                 ),
               ),
             ),
@@ -261,10 +288,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           _HistoryPill(
                             label: 'CLEAR ALL',
                             icon: Icons.delete_sweep_outlined,
-                            backgroundColor: AppColors.buttonSecondary.withValues(
-                              alpha: 0.82,
-                            ),
-                            onTap: _clearHistory,
+                            backgroundColor: AppColors.buttonSecondary
+                                .withValues(alpha: 0.82),
+                            onTap: _confirmClearHistory,
                           ),
                         ],
                       ),
@@ -303,7 +329,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       for (final section in _sections) ...[
                                         _SectionLabel(title: section.title),
                                         const SizedBox(height: 12),
-                                        for (final entry in section.entries) ...[
+                                        for (final entry
+                                            in section.entries) ...[
                                           _HistoryEntryTile(
                                             entry: entry,
                                             timeLabel: _formatTime(
@@ -311,8 +338,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                             ),
                                             isSwipeDeleteEnabled:
                                                 _isSwipeDeleteEnabled,
-                                            onDismissed:
-                                                () => _deleteEntry(entry),
+                                            onDismissed: () =>
+                                                _deleteEntry(entry),
                                           ),
                                           const SizedBox(height: 12),
                                         ],
@@ -506,11 +533,17 @@ class _HistoryPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final foreground =
         foregroundColor ?? AppColors.textPrimary.withValues(alpha: 0.82);
+    final callback = onTap;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: callback == null
+            ? null
+            : () {
+                unawaited(AppInteractionFeedback.playTap());
+                callback();
+              },
         borderRadius: BorderRadius.circular(999),
         child: Ink(
           padding: padding,
