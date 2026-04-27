@@ -33,9 +33,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // Agar yeh true ho to next digit naya input start karti hai.
   bool _shouldResetInput = false;
   // Upar wali expression line.
-  String _expression = '0';
-  // Aakhri completed answer jo hint ke tor par dikhaya jata hai.
-  String _lastResult = '0';
+  String _expression = '';
+  // Answer display: sirf = press karne ke baad result show hoga, warna '0'.
+  String _answerDisplay = '0';
 
   @override
   void dispose() {
@@ -108,19 +108,20 @@ class _HomeScreenState extends State<HomeScreen> {
       _storedValue = null;
       _operator = null;
       _shouldResetInput = false;
-      _expression = '0';
-      _lastResult = '0';
+      _expression = '';
+      _answerDisplay = '0';
     });
   }
 
   /// Naya digit current input me add karta hai aur max length ka khayal bhi rakhta hai.
   void _appendDigit(String digit) {
     setState(() {
+      _answerDisplay = '0'; // naya input shuru, answer clear
       if (_shouldResetInput) {
         _currentInput = digit;
         _shouldResetInput = false;
         if (_operator == null) {
-          _expression = '0';
+          _expression = '';
         }
       } else if (_currentInput == '0') {
         _currentInput = digit;
@@ -138,11 +139,12 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Decimal sirf ek dafa add hota hai aur reset state ko bhi sambhalta hai.
   void _appendDecimal() {
     setState(() {
+      _answerDisplay = '0'; // naya input shuru, answer clear
       if (_shouldResetInput) {
         _currentInput = '0.';
         _shouldResetInput = false;
         if (_operator == null) {
-          _expression = '0';
+          _expression = '';
         }
       } else if (!_currentInput.contains('.')) {
         _currentInput += '.';
@@ -181,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       if (_shouldResetInput && _operator == null) {
         _currentInput = '0';
-        _expression = '0';
+        _expression = '';
         _shouldResetInput = false;
         return;
       }
@@ -190,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _operator = null;
         _shouldResetInput = false;
         _storedValue = null;
-        _expression = '0';
+        _expression = '';
         return;
       }
 
@@ -222,7 +224,6 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           _storedValue = result;
           _currentInput = _normalizeNumber(result);
-          _lastResult = _formatDisplay(_currentInput);
         } else {
           _operator = nextOperator;
           _expression = '${_formatNumber(_storedValue!)} $_operator';
@@ -267,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _expression = historyExpression;
       _currentInput = nextInput;
-      _lastResult = historyResult;
+      _answerDisplay = historyResult;  // = press hone par answer show karo
       _storedValue = null;
       _operator = null;
       _shouldResetInput = true;
@@ -309,6 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _operator = null;
     _shouldResetInput = false;
     _expression = 'Cannot divide by zero';
+    // Error message expression line me dikhao, answer display me 0 rahega.
   }
 
   /// Chhoti expression line ko current calculator state ke sath sync rakhta hai.
@@ -321,9 +323,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    if (!_shouldResetInput) {
-      _expression = _formatDisplay(_currentInput);
-    }
+    // Jab koi operator nahi hai to expression line me current input dikhao.
+    _expression = _formatDisplay(_currentInput);
   }
 
   /// Input string ko double me convert karta hai.
@@ -421,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _storedValue = null;
         _operator = null;
         _shouldResetInput = false;
-        _expression = _formatDisplay(_currentInput);
+        _expression = '';
       });
       return;
     }
@@ -439,7 +440,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final displayValue = _formatDisplay(_currentInput);
 
     return AppTabScaffold(
       currentRoute: AppRoutes.calculator,
@@ -456,15 +456,16 @@ class _HomeScreenState extends State<HomeScreen> {
             letterSpacing: 3,
           ),
           Container(
-            // Yeh display area current expression aur latest answer dono dikhata hai.
+            // Display area: upar expression line, neeche sirf answer.
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
             decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
               gradient: RadialGradient(
-                center: const Alignment(0.85, -0.55),
-                radius: 1.15,
+                center: const Alignment(0.9, -0.9),
+                radius: 1.3,
                 colors: [
-                  AppColors.accentPurple.withValues(alpha: 0.20),
+                  AppColors.accentPurple.withValues(alpha: 0.12),
                   Colors.transparent,
                 ],
               ),
@@ -472,60 +473,36 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  'EXPRESSION',
-                  style: TextStyle(
-                    color: AppColors.textSecondary.withValues(alpha: 0.85),
-                    fontSize: 12,
-                    letterSpacing: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 10),
+                // Upar wali line: sirf expression dikhti hai (e.g. "5 + 3")
                 EditableExpressionLine(
                   key: const Key('calculator_expression_editor'),
                   controller: _expressionEditor,
-                  text: _expression,
+                  text: _expression.isEmpty ? '' : _expression,
                   textKey: const Key('calculator_expression'),
+                  maxLines: 2,
+                  padding: EdgeInsets.zero,
                   style: TextStyle(
-                    color: AppColors.textSecondary.withValues(alpha: 0.85),
-                    fontSize: 28,
-                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary.withValues(alpha: 0.60),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.2,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
+                // Neeche wali bari display: sirf answer/current number
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerRight,
                   child: Text(
-                    displayValue,
+                    _answerDisplay,
                     key: const Key('calculator_display'),
                     style: TextStyle(
-                      color: AppColors.primary,
+                      color: AppColors.textPrimary.withValues(alpha: 0.98),
                       fontSize: 64,
                       fontWeight: FontWeight.w700,
-                      height: 1,
+                      height: 0.95,
                     ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Icon(
-                      Icons.history_toggle_off_rounded,
-                      size: 14,
-                      color: AppColors.textSecondary.withValues(alpha: 0.75),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'LAST RESULT, $_lastResult',
-                      style: TextStyle(
-                        color: AppColors.textSecondary.withValues(alpha: 0.75),
-                        fontSize: 11,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
